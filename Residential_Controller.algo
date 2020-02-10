@@ -1,0 +1,45 @@
+The Residential building for which the first controller is to be programmed has only one column consisting of two elevators and 10 floors.
+Objects that need to be controlled:
+Column
+Lifts (Cage)
+Call buttons
+Doors
+Floor request buttons
+The controller for residential building will serve intuitively for that of the corporate building that must also be programmed.
+
+1 column 
+2 elevators 
+10 floors   
+
+Scenario 1 - If floor button is pressed, close doors and bring elevator to floor called 
+
+Scenario 2 - If doors are open, hold them for 5 seconds 
+
+Scenario 3 - If the doors are closing and there is something in between, open doors
+
+Scenario 4 - If elevtor is put for more than 10 minutes, bring back to first floor
+
+Scenario 5 - If one elevator is moving, use other elevator 
+
+Scenario 6 - If both elevators are moving, finish the rides (up and down) and bring back to first floor
+
+Scenario 7 - If elevator is being held open and other floors are calling, try to close 3 times and ring alarm for 2 seconds
+
+Scenario 8 - If button stays pressed, blare alarm for 2 seconds
+
+Scenario 9 - If phone button is pressed, call 911 
+
+Scenario 10 - If elevator is not going up and down, blare alarm for 2 seconds
+
+Scenario 11 - If button is pressed, light it up until it gets to the floor 
+
+Scenario 12 - If more than one button is pressed, go to the floors in order (sequence)
+
+Scenario 13 - If CLOSE button is pressed, start closing doors process
+
+Scenario 14 - If OPEN button is pressed, make sure elevator is immobile and open doors
+
+Scenario 15 - if power outage, bring elevator down again
+
+Scenario 16 - If elevator is going up, keep going up until last passenger (highest floor called) 
+              If elevator is going down, keep going down until last passenger (lower floor called)
