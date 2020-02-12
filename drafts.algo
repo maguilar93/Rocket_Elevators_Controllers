@@ -1,0 +1,49 @@
+
+floorButton = position of up or down button outside of elevator
+upButton = button up (outside of elevator)
+downButton = button down (outside of elevator)
+elevatorButton = value of button inside of elevator
+
+
+'Decide which elevator will come to the floor calling based on capacity and position'
+
+function decideElevator() 
+
+
+    IF capacity1 AND capacity2 THEN
+        IF |floorButton - position1| > |floorButton - position2| THEN
+            CALL floorCall(elevator2) 
+        ELSE 
+            CALL floorCall(elevator1)
+        END IF
+    ELSE IF capacity1 THEN 
+        CALL floorCall(elevator1)
+    ELSE
+        CALL floorCall(elevator2) 
+    ENDIF
+
+
+
+
+
+
+'If phone button is pressed, call 911'
+
+function phoneButton() 
+
+IF phone button is pressed THEN 
+    DIAL 911
+END IF
+
+
+'If one elevator is blocked, make only the other elevator work'
+
+function blockedElevator()
+
+IF elevator 1 is blocked THEN 
+    CALL floorCall(elevator 2)
+ELSE IF elevator 2 is blocked THEN 
+    CALL floorCall(elevator 1)
+END IF
+
+

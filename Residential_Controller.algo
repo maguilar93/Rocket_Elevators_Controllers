@@ -1,45 +1,151 @@
-The Residential building for which the first controller is to be programmed has only one column consisting of two elevators and 10 floors.
-Objects that need to be controlled:
-Column
-Lifts (Cage)
-Call buttons
-Doors
-Floor request buttons
-The controller for residential building will serve intuitively for that of the corporate building that must also be programmed.
+SET nbFloors TO 10
+SET nbColumn TO 1 
+SET nbElevators TO 2
+SET requests to 0
 
-1 column 
-2 elevators 
-10 floors   
+elevator_1 = {
+    position_1: 1
+    capacity_1: TRUE
+}
 
-Scenario 1 - If floor button is pressed, close doors and bring elevator to floor called 
+elevator_2 = {
+    position_2: 5
+    capacity_2: TRUE
+}
 
-Scenario 2 - If doors are open, hold them for 5 seconds 
+FOR EACH elevator IN column
+    SET idle TO TRUE
+    SET directionUp TO FALSE
+    SET directionDown TO FALSE
+    SET buttonLight TO FALSE
+    SET timer to 0 (seconds)
+END FOR
 
-Scenario 3 - If the doors are closing and there is something in between, open doors
+'----------------------------------------------------------Move elevator DOWN----------------------------------------------------------'
+function moveDown() 
+    REPEAT 
+        DECREMENT position
+        SET idle TO FALSE
+        SET directionUp TO FALSE
+        SET directionDown TO TRUE
+    UNTIL position EQUALS floorButton 
 
-Scenario 4 - If elevtor is put for more than 10 minutes, bring back to first floor
+'------------------------------------------------------------Move elevator UP------------------------------------------------------------'
+function moveUp()
+    REPEAT
+        INCREMENT position
+        SET idle TO FALSE
+        SET directionUp TO TRUE
+        SET directionDown TO FALSE
+    UNTIL position EQUALS floorButton
 
-Scenario 5 - If one elevator is moving, use other elevator 
+'--------------------------------------------------------------Close doors---------------------------------------------------------------'
+function closeDoors() 
+    REPEAT 
+        IF doors are open  THEN
+            wait 3 second
+                IF obstacles THEN
+                    open doors 
+                ELSE 
+                    close doors
+                END IF
+        END IF
+    UNTIL doors are closed
 
-Scenario 6 - If both elevators are moving, finish the rides (up and down) and bring back to first floor
+'-------------------------------------------------------------Start Timers-----------------------------------------------------------'
+function startTimers()
+    IF position1 IS NOT 1 OR position2 IS NOT 5 THEN
+        REPEAT
+            INCREMENT timer
+        UNTIL timer EQUALS 600 
+    END IF
 
-Scenario 7 - If elevator is being held open and other floors are calling, try to close 3 times and ring alarm for 2 seconds
+'------------------------------------------------------------Return to origin---------------------------------------------------------'
 
-Scenario 8 - If button stays pressed, blare alarm for 2 seconds
+function backToOrigin()
+    IF position1 > 0 THEN
+        REPEAT 
+            DECREMENT position1
+            SET idle TO FALSE
+            SET directionUp TO FALSE
+            SET directionDown TO TRUE
+        UNTIL position1 EQUALS 0 
+    END IF
 
-Scenario 9 - If phone button is pressed, call 911 
+    IF position2 > 5 THEN
+        REPEAT 
+            DECREMENT position1
+            SET idle TO FALSE
+            SET directionUp TO FALSE
+            SET directionDown TO TRUE
+        UNTIL position1 EQUALS 0 
+    ELSE IF position2 < 5 THEN
+        REPEAT
+            INCREMENT elevator position
+            SET idle TO FALSE
+            SET directionUp TO TRUE
+            SET directionDown TO FALSE
+        UNTIL position2 EQUALS 5
+    END IF
 
-Scenario 10 - If elevator is not going up and down, blare alarm for 2 seconds
+'---------------------------------------------------------Origin with timer------------------------------------------------------------'
+function originOnTimer()
+    FOR EACH elevator IN column
+        IF timer >= 600  THEN 
+            CALL backToOrigin()
+        END IF
+    ENDFOR
 
-Scenario 11 - If button is pressed, light it up until it gets to the floor 
+'---------------------------------------------------------Turn buttons light on--------------------------------------------------------'
+function buttonLight()
+    FOR EACH elevator IN column
+        IF elevatorButton EQUALS 
+            SET buttonLight TO TRUE
+        UNTIL floorButton EQUALS position
+    ENDFOR
+        
 
-Scenario 12 - If more than one button is pressed, go to the floors in order (sequence)
+'---------------------------------------------------------Inside buttons commands------------------------------------------------------'
+function elevatorButtons()
+    IF elevatorButton > position
+        CALL buttonLight()
+        REPEAT
+            INCREMENT position
+            SET idle TO FALSE
+            SET directionDown TO FALSE
+            SET directionUp TO TRUE
+        UNTIL arrived to elevatorButton
+        OPEN doors
+    ELSE IF elevatorButton < position
+        CALL buttonLight()
+        REPEAT 
+            DECREMENT position
+            SET idle TO FALSE
+            SET directionDown TO TRUE
+            SET directionUp TO FALSE
+        UNTIL arrived to elevatorButton
+        OPEN doors
+    ELSE 
+        OPEN doors
+    END IF
 
-Scenario 13 - If CLOSE button is pressed, start closing doors process
 
-Scenario 14 - If OPEN button is pressed, make sure elevator is immobile and open doors
+'------------------------------------------------------Outside (floors) buttons commands-----------------------------------------------'
+function floorButtons() 
+    CALL closeDoors()
+        IF floorButton > position 
+            REPEAT
+                INCREMENT position
+                SET idle TO FALSE
+            UNTIL arrived to floorButton
+            OPEN doors
+        ELSE IF floorButton < position 
+            CALL moveDown() 
+            OPEN doors
+        ELSE 
+            OPEN doors
+        END IF
+    CALL closeDoors()
 
-Scenario 15 - if power outage, bring elevator down again
 
-Scenario 16 - If elevator is going up, keep going up until last passenger (highest floor called) 
-              If elevator is going down, keep going down until last passenger (lower floor called)
+'----------------------------------------------------------------Phone Button----------------------------------------------------------'
