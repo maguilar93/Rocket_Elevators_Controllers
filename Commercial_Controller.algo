@@ -1,0 +1,240 @@
+SEQUENCE INIT 
+    FOR EACH column IN battery
+        SET nbFloors TO 66
+        SET nbColumn TO 4 
+        SET nbElevators TO 12
+        SET current_position TO position
+        SET idle TO TRUE
+        SET directionUp TO FALSE
+        SET directionDown TO FALSE
+        SET buttonLight TO FALSE
+        SET timer TO 0 (seconds)
+        SET requests TO EMPTY
+        SET obstacles TO FALSE
+        SET displayPanel TO 0
+    END FOR
+END SEQUENCE
+
+'----------------------------------------------------------Move elevator DOWN----------------------------------------------------------'
+SEQUENCE moveDown
+        DECREMENT current_position
+        SET idle TO FALSE
+        SET directionUp TO FALSE
+        SET directionDown TO TRUE
+END SEQUENCE
+
+'------------------------------------------------------------Move elevator UP------------------------------------------------------------'
+SEQUENCE moveUp 
+        INCREMENT current_position
+        SET idle TO FALSE
+        SET directionUp TO TRUE
+        SET directionDown TO FALSE
+END SEQUENCE
+
+'--------------------------------------------------------------Close doors---------------------------------------------------------------'
+SEQUENCE closeDoors  
+    REPEAT 
+        IF doors EQUALS open  THEN
+            REPEAT 
+                INCREMENT timer 
+            UNTIL 3
+            RETURN timer TO 0
+
+            IF obstacles THEN
+                open doors 
+            ELSE 
+                close doors
+            END IF
+        END IF
+    UNTIL doors EQUALS closed
+END SEQUENCE 
+
+'-------------------------------------------------------------Start Timers-----------------------------------------------------------'
+SEQUENCE startTimers 
+        REPEAT
+            INCREMENT timer
+        UNTIL timer EQUALS 600 
+        RETURN timer TO 0
+END SEQUENCE
+
+'------------------------------------------------------------Return to position---------------------------------------------------------'
+SEQUENCE backToPosition 
+    FOR EACH elevator IN column
+        IF current_position > position THEN
+            REPEAT 
+                CALL startTimers
+                CALL moveDown
+            UNTIL current_position EQUALS position
+        ELSE IF 
+            REPEAT
+                CALL startTimers
+                CALL moveUp
+            UNTIL current_position EQUALS position
+        END IF
+    END FOR
+END SEQUENCE
+ 
+'---------------------------------------------------------Origin with timer------------------------------------------------------------'
+SEQUENCE originOnTimer 
+    FOR EACH elevator IN column
+        IF timer >= 600  THEN 
+            CALL backToPosition 
+        END IF
+    ENDFOR
+END SEQUENCE
+
+'---------------------------------------------------------Inside buttons commands------------------------------------------------------'
+SEQUENCE elevatorButtons 
+    IF elevatorButton > current_position
+        REPEAT
+            SET buttonLight TO TRUE
+            CALL moveUp
+        UNTIL elevatorButton EQUALS current_position
+        OPEN doors
+    ELSE IF elevatorButton < current_position
+        REPEAT 
+            SET buttonLight TO TRUE
+            CALL moveDown
+        UNTIL elevatorButton EQUALS current_position
+        OPEN doors
+    ELSE 
+        OPEN doors
+    END IF
+END SEQUENCE
+
+'------------------------------------------------------Outside (floors) buttons commands-----------------------------------------------'
+SEQUENCE floorButtons using elevator
+    CALL closeDoors 
+    CALL setDirection
+        IF floorButton > current_position AND (directionUp OR idle)
+            SET buttonLight TO TRUE
+            CALL moveUp
+        ELSE IF floorButton < current_position AND (directionDown OR idle)
+            SET buttonLight TO TRUE
+            CALL moveDown  
+        ELSE 
+            OPEN doors
+            SET buttonLight TO FALSE
+        END IF
+    CALL closeDoors 
+END SEQUENCE
+
+'-------------------------------------------------------------Add requests-------------------------------------------------------------'
+SEQUENCE addRequests 
+    IF elevatorButton is pressed THEN
+        IF elevatorButton > position OR elevatorButton < position
+            ADD request TO requests
+        ELSE  
+            REMOVE request TO requests
+        END IF
+    END IF
+END SEQUENCE
+
+'------------------------------------------------------------Match request with direction---------------------------------------------'
+SEQUENCE setDirection
+    CALL addRequests
+        FOR EACH request IN requests
+            IF directionUp EQUALS TRUE THEN
+                REPEAT 
+                    directionUp 
+                UNTIL requests IS EMPTY
+            ELSE IF directionDown EQUALS TRUE THEN
+                REPEAT 
+                    directionDown EQUALS TRUE THEN
+                UNTIL requests IS EMPTY
+            END IF
+        END FOR
+END SEQUENCE
+
+'---------------------------------------------------------Measure Capacity------------------------------------------------------------'
+SEQUENCE measureCapacity
+    READ weight from elevator
+        IF weight > capacity THEN 
+            SET capacity TO FALSE
+        ELSE 
+            SET capacity TO TRUE
+        END IF
+END SEQUENCE
+
+'--------------------------------------------Decide which elevator comes inside a column-----------------------------------------------'
+SEQUENCE decideElevator using column
+    CALL measureCapacity
+        IF capacity THEN
+            CALL callDistance 
+            READ smallest distance IN callDistance
+        END IF
+END SEQUENCE
+
+'------------------------------------------------Decide which column responds---------------------------------------------------------'
+SEQUENCE floorColumns 
+    IF floorButton < 0 THEN 
+        CALL decideElevator using column1
+    ELSE IF floorButton > 0 AND floorButton <= 20 THEN
+        CALL decideElevator using column2
+    ELSE IF floorButton > 20 AND floorButton <= 40 THEN 
+        CALL decideElevator using column3
+    ELSE IF floorButton > 40 AND floorButton <= 60 THEN
+        CALL decideElevator using column4
+    ENDIF
+END SEQUENCE
+
+'-----------------------------------------------------Floor display--------------------------------------------------------------------'
+SEQUENCE floorDisplay
+    floorDisplay EQUALS current_position
+END SEQUENCE
+
+'-----------------------------------------------------------Close Button--------------------------------------------------------------'
+SEQUENCE closeButton
+    IF doors EQUALS open THEN
+        SET timer TO 3 
+            IF obstacles THEN
+                open doors 
+            ELSE 
+                close doors
+            END IF
+        SET timer to 0
+    ELSE
+        DO NOTHING
+END SEQUENCE
+    
+'----------------------------------------------------------Phone Button---------------------------------------------------------------'
+SEQUENCE phoneButton
+    IF phone is pressed THEN 
+        DIAL 911
+    ENDIF
+END SEQUENCE
+
+'----------------------------------------------------------Open Button---------------------------------------------------------------'
+SEQUENCE openButton
+    IF idle EQUALS TRUE AND doors EQUALS closed THEN
+        SET doors TO open
+    ENDIF 
+END SEQUENCE
+
+'-----------------------------------------------Measure distance between elevator and call-------------------------------------------'
+SEQUENCE callDistance 
+    FOR EACH elevator IN column
+        |floorButton - current_position|
+        ADD to closest
+    ENDFOR
+END SEQUENCE
+
+'--------------------------------------------------------While battery is on---------------------------------------------------------'
+WHILE battery IS ON 
+    CALL INIT
+    CALL originOnTimer
+    CALL floorDisplay
+    CALL floorColumns
+
+    IF floorButton IS pressed THEN
+        CALL floorButtons
+    ENDIF
+
+    IF open IS pressed THEN
+        CALL openButton
+    ENDIF
+
+    IF phone IS pressed THEN
+        CALL phoneButton
+    ENDIF
+ENDWHILE 
