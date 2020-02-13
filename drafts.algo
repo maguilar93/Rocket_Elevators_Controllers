@@ -24,9 +24,6 @@ function decideElevator()
 
 
 
-
-
-
 'If phone button is pressed, call 911'
 
 function phoneButton() 

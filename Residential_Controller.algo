@@ -1,151 +1,240 @@
-SET nbFloors TO 10
-SET nbColumn TO 1 
-SET nbElevators TO 2
-SET requests to 0
-
 elevator_1 = {
-    position_1: 1
+    position_1: TRUE
     capacity_1: TRUE
 }
 
 elevator_2 = {
-    position_2: 5
+    position_2: TRUE
     capacity_2: TRUE
 }
 
-FOR EACH elevator IN column
-    SET idle TO TRUE
-    SET directionUp TO FALSE
-    SET directionDown TO FALSE
-    SET buttonLight TO FALSE
-    SET timer to 0 (seconds)
-END FOR
+SEQUENCE INIT 
+    FOR EACH elevator IN column
+        SET nbFloors TO 10
+        SET nbColumn TO 1 
+        SET nbElevators TO 2
+        SET current_position TO position
+        SET idle TO TRUE
+        SET directionUp TO FALSE
+        SET directionDown TO FALSE
+        SET buttonLight TO FALSE
+        SET timer TO 0 (seconds)
+        SET requests TO EMPTY
+        SET obstacles TO FALSE
+    END FOR
+END SEQUENCE
 
 '----------------------------------------------------------Move elevator DOWN----------------------------------------------------------'
-function moveDown() 
-    REPEAT 
-        DECREMENT position
+SEQUENCE moveDown
+        DECREMENT current_position
         SET idle TO FALSE
         SET directionUp TO FALSE
         SET directionDown TO TRUE
-    UNTIL position EQUALS floorButton 
+END SEQUENCE
 
 '------------------------------------------------------------Move elevator UP------------------------------------------------------------'
-function moveUp()
-    REPEAT
-        INCREMENT position
+SEQUENCE moveUp 
+        INCREMENT current_position
         SET idle TO FALSE
         SET directionUp TO TRUE
         SET directionDown TO FALSE
-    UNTIL position EQUALS floorButton
+END SEQUENCE
 
 '--------------------------------------------------------------Close doors---------------------------------------------------------------'
-function closeDoors() 
+SEQUENCE closeDoors  
     REPEAT 
-        IF doors are open  THEN
-            wait 3 second
-                IF obstacles THEN
-                    open doors 
-                ELSE 
-                    close doors
-                END IF
+        IF doors EQUALS open  THEN
+            REPEAT 
+                INCREMENT timer 
+            UNTIL 3
+            RETURN timer TO 0
+
+            IF obstacles THEN
+                open doors 
+            ELSE 
+                close doors
+            END IF
         END IF
-    UNTIL doors are closed
+    UNTIL doors EQUALS closed
+END SEQUENCE
 
 '-------------------------------------------------------------Start Timers-----------------------------------------------------------'
-function startTimers()
-    IF position1 IS NOT 1 OR position2 IS NOT 5 THEN
+SEQUENCE startTimers 
         REPEAT
             INCREMENT timer
         UNTIL timer EQUALS 600 
-    END IF
+        RETURN timer TO 0
+END SEQUENCE
 
-'------------------------------------------------------------Return to origin---------------------------------------------------------'
+'------------------------------------------------------------Return to position---------------------------------------------------------'
+SEQUENCE backToPosition 
+    FOR EACH elevator IN column
+        IF current_position > position1 THEN
+            REPEAT 
+                CALL startTimers
+                CALL moveDown
+            UNTIL current_position EQUALS position1
+        END IF
 
-function backToOrigin()
-    IF position1 > 0 THEN
-        REPEAT 
-            DECREMENT position1
-            SET idle TO FALSE
-            SET directionUp TO FALSE
-            SET directionDown TO TRUE
-        UNTIL position1 EQUALS 0 
-    END IF
-
-    IF position2 > 5 THEN
-        REPEAT 
-            DECREMENT position1
-            SET idle TO FALSE
-            SET directionUp TO FALSE
-            SET directionDown TO TRUE
-        UNTIL position1 EQUALS 0 
-    ELSE IF position2 < 5 THEN
-        REPEAT
-            INCREMENT elevator position
-            SET idle TO FALSE
-            SET directionUp TO TRUE
-            SET directionDown TO FALSE
-        UNTIL position2 EQUALS 5
-    END IF
+        IF current_position > position2 THEN
+            REPEAT 
+                CALL startTimers
+                CALL moveDown
+            UNTIL current_position EQUALS position2
+        ELSE IF 
+            REPEAT
+                CALL startTimers
+                CALL moveUp
+            UNTIL current_position EQUALS position2
+        END IF
+    END FOR
+END SEQUENCE
 
 '---------------------------------------------------------Origin with timer------------------------------------------------------------'
-function originOnTimer()
+SEQUENCE originOnTimer 
     FOR EACH elevator IN column
         IF timer >= 600  THEN 
-            CALL backToOrigin()
+            CALL backToPosition 
         END IF
     ENDFOR
-
-'---------------------------------------------------------Turn buttons light on--------------------------------------------------------'
-function buttonLight()
-    FOR EACH elevator IN column
-        IF elevatorButton EQUALS 
-            SET buttonLight TO TRUE
-        UNTIL floorButton EQUALS position
-    ENDFOR
-        
+END SEQUENCE
 
 '---------------------------------------------------------Inside buttons commands------------------------------------------------------'
-function elevatorButtons()
-    IF elevatorButton > position
-        CALL buttonLight()
+SEQUENCE elevatorButtons 
+    IF elevatorButton > current_position
         REPEAT
-            INCREMENT position
-            SET idle TO FALSE
-            SET directionDown TO FALSE
-            SET directionUp TO TRUE
-        UNTIL arrived to elevatorButton
+            SET buttonLight TO TRUE
+            CALL moveUp
+        UNTIL elevatorButton EQUALS current_position
         OPEN doors
-    ELSE IF elevatorButton < position
-        CALL buttonLight()
+    ELSE IF elevatorButton < current_position
         REPEAT 
-            DECREMENT position
-            SET idle TO FALSE
-            SET directionDown TO TRUE
-            SET directionUp TO FALSE
-        UNTIL arrived to elevatorButton
+            SET buttonLight TO TRUE
+            CALL moveDown
+        UNTIL elevatorButton EQUALS current_position
         OPEN doors
     ELSE 
         OPEN doors
     END IF
-
+END SEQUENCE
 
 '------------------------------------------------------Outside (floors) buttons commands-----------------------------------------------'
-function floorButtons() 
-    CALL closeDoors()
-        IF floorButton > position 
-            REPEAT
-                INCREMENT position
-                SET idle TO FALSE
-            UNTIL arrived to floorButton
-            OPEN doors
-        ELSE IF floorButton < position 
-            CALL moveDown() 
-            OPEN doors
+SEQUENCE floorButtons using elevator
+    CALL closeDoors 
+    CALL setDirection
+        IF floorButton > current_position AND (directionUp OR idle)
+            SET buttonLight TO TRUE
+            CALL moveUp
+        ELSE IF floorButton < current_position AND (directionDown OR idle)
+            SET buttonLight TO TRUE
+            CALL moveDown  
         ELSE 
             OPEN doors
+            SET buttonLight TO FALSE
         END IF
-    CALL closeDoors()
+    CALL closeDoors 
+END SEQUENCE
 
+'-------------------------------------------------------------Add requests-------------------------------------------------------------'
+SEQUENCE addRequests 
+    IF elevatorButton is pressed THEN
+        IF elevatorButton > position OR elevatorButton < position
+            ADD request TO requests
+        ELSE  
+            REMOVE request TO requests
+        END IF
+    END IF
+END SEQUENCE
+    
+'------------------------------------------------------------Match request with direction---------------------------------------------'
+SEQUENCE setDirection
+    CALL addRequests
+        FOR EACH request IN requests
+            IF directionUp EQUALS TRUE THEN
+                REPEAT 
+                    directionUp 
+                UNTIL requests IS EMPTY
+            ELSE IF directionDown EQUALS TRUE THEN
+                REPEAT 
+                    directionDown EQUALS TRUE THEN
+                UNTIL requests IS EMPTY
+            END IF
+        END FOR
+END SEQUENCE
 
-'----------------------------------------------------------------Phone Button----------------------------------------------------------'
+'---------------------------------------------------------Measure Capacity------------------------------------------------------------'
+SEQUENCE measureCapacity
+    READ weight from elevator
+        IF weight > capacity THEN 
+            SET capacity TO FALSE
+        ELSE 
+            SET capacity TO TRUE
+        END IF
+END SEQUENCE
+
+'----------------------------------------------------------Decide which elevator comes------------------------------------------------'
+SEQUENCE decideElevator
+    CALL measureCapacity
+        IF capacity1 AND capacity2 THEN
+            IF |floorButton - position1| > |floorButton - position2| THEN
+                CALL floorButtons using elevator2
+            ELSE 
+                CALL floorButtons using elevator1
+            END IF
+        ELSE IF capacity1 THEN 
+            CALL floorButtons using elevator1
+        ELSE
+            CALL floorButtons using elevator2
+        ENDIF
+END SEQUENCE
+
+'-----------------------------------------------------------Close Button--------------------------------------------------------------'
+SEQUENCE closeButton
+    IF doors EQUALS open THEN
+        SET timer TO 3 
+            IF obstacles THEN
+                open doors 
+            ELSE 
+                close doors
+            END IF
+        SET timer to 0
+    ELSE
+        DO NOTHING
+END SEQUENCE
+    
+'----------------------------------------------------------Phone Button---------------------------------------------------------------'
+SEQUENCE phoneButton
+    IF phone is pressed THEN 
+        DIAL 911
+    ENDIF
+END SEQUENCE
+
+'----------------------------------------------------------Open Button---------------------------------------------------------------'
+SEQUENCE openButton
+    IF idle EQUALS TRUE AND doors EQUALS closed THEN
+        SET doors TO open
+    ENDIF 
+END SEQUENCE
+
+'-----------------------------------------------------------WHILE BATTERY IS ON---------------------------------------------------------'
+WHILE battery IS ON 
+    CALL INIT
+
+    CALL originOnTimer
+
+    IF floorButton IS pressed THEN
+        CALL floorButtons
+    ENDIF
+
+    IF open IS pressed THEN
+        CALL openButton
+    ENDIF
+
+    IF phone IS pressed THEN
+        CALL phoneButton
+    ENDIF
+
+    IF floorButton IS pressed THEN
+        CALL decideElevator
+    ENDIF
+ENDWHILE
