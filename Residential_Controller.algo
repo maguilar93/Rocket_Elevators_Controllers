@@ -1,5 +1,5 @@
 elevator_1 = {
-    position_1: 0
+    position_1: 1
     capacity_1: TRUE
 }
 
@@ -49,13 +49,40 @@ SEQUENCE closeDoors
             UNTIL 3
             RETURN timer TO 0
 
-            IF obstacles THEN
+            IF obstacles EQUALS TRUE THEN
                 open doors 
             ELSE 
                 close doors
             END IF
         END IF
     UNTIL doors EQUALS closed
+END SEQUENCE
+
+'-------------------------------------------------------------Add requests-------------------------------------------------------------'
+SEQUENCE addRequests 
+    IF elevatorButton is pressed THEN
+        IF elevatorButton > position OR elevatorButton < position
+            ADD request TO requests
+        ELSE  
+            REMOVE request TO requests
+        END IF
+    END IF
+END SEQUENCE
+    
+'------------------------------------------------------------Match request with direction---------------------------------------------'
+SEQUENCE setDirection
+    CALL addRequests
+        FOR EACH request IN requests
+            IF directionUp EQUALS TRUE THEN
+                REPEAT 
+                    directionUp 
+                UNTIL requests IS EMPTY
+            ELSE IF directionDown EQUALS TRUE THEN
+                REPEAT 
+                    directionDown 
+                UNTIL requests IS EMPTY
+            END IF
+        END FOR
 END SEQUENCE
 
 '-------------------------------------------------------------Start Timers-----------------------------------------------------------'
@@ -71,19 +98,16 @@ SEQUENCE backToPosition
     FOR EACH elevator IN column
         IF current_position > position1 THEN
             REPEAT 
-                CALL startTimers
                 CALL moveDown
             UNTIL current_position EQUALS position1
         END IF
 
         IF current_position > position2 THEN
             REPEAT 
-                CALL startTimers
                 CALL moveDown
             UNTIL current_position EQUALS position2
-        ELSE IF 
+        ELSE IF current_position < position2
             REPEAT
-                CALL startTimers
                 CALL moveUp
             UNTIL current_position EQUALS position2
         END IF
@@ -93,6 +117,7 @@ END SEQUENCE
 '---------------------------------------------------------Origin with timer------------------------------------------------------------'
 SEQUENCE originOnTimer 
     FOR EACH elevator IN column
+        CALL startTimers
         IF timer >= 600  THEN 
             CALL backToPosition 
         END IF
@@ -133,33 +158,6 @@ SEQUENCE floorButtons using elevator
             SET buttonLight TO FALSE
         END IF
     CALL closeDoors 
-END SEQUENCE
-
-'-------------------------------------------------------------Add requests-------------------------------------------------------------'
-SEQUENCE addRequests 
-    IF elevatorButton is pressed THEN
-        IF elevatorButton > position OR elevatorButton < position
-            ADD request TO requests
-        ELSE  
-            REMOVE request TO requests
-        END IF
-    END IF
-END SEQUENCE
-    
-'------------------------------------------------------------Match request with direction---------------------------------------------'
-SEQUENCE setDirection
-    CALL addRequests
-        FOR EACH request IN requests
-            IF directionUp EQUALS TRUE THEN
-                REPEAT 
-                    directionUp 
-                UNTIL requests IS EMPTY
-            ELSE IF directionDown EQUALS TRUE THEN
-                REPEAT 
-                    directionDown EQUALS TRUE THEN
-                UNTIL requests IS EMPTY
-            END IF
-        END FOR
 END SEQUENCE
 
 '---------------------------------------------------------Measure Capacity------------------------------------------------------------'
@@ -222,12 +220,16 @@ WHILE battery IS ON
 
     CALL originOnTimer
 
-    IF floorButton IS pressed THEN
-        CALL floorButtons
+    IF close IS pressed THEN
+        CALL closeButton
     ENDIF
 
     IF open IS pressed THEN
         CALL openButton
+    ENDIF
+
+    IF elevatorButton IS pressed THEN
+        CALL elevatorButtons
     ENDIF
 
     IF phone IS pressed THEN

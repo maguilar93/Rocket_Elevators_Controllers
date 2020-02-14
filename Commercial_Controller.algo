@@ -225,16 +225,17 @@ WHILE battery IS ON
     CALL INIT
     CALL originOnTimer
     CALL floorDisplay
-    CALL floorColumns
 
     IF floorButton IS pressed THEN
-        REPEAT
-            CALL floorButtons
-        UNTIL floorButtons EQUALS current_position
+        CALL floorColumns 
     ENDIF
 
     IF open IS pressed THEN
         CALL openButton
+    ENDIF
+
+    IF close IS pressed THEN      
+        CALL closeButton
     ENDIF
 
     IF elevatorButton IS pressed THEN 
