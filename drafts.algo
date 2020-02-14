@@ -9,7 +9,6 @@ elevatorButton = value of button inside of elevator
 
 function decideElevator() 
 
-
     IF capacity1 AND capacity2 THEN
         IF |floorButton - position1| > |floorButton - position2| THEN
             CALL floorCall(elevator2) 

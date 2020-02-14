@@ -12,6 +12,7 @@ SEQUENCE INIT
         SET requests TO EMPTY
         SET obstacles TO FALSE
         SET displayPanel TO 0
+        SET capacity TO TRUE
     END FOR
 END SEQUENCE
 
@@ -61,13 +62,13 @@ END SEQUENCE
 SEQUENCE backToPosition 
     FOR EACH elevator IN column
         IF current_position > position THEN
+            CALL startTimers
             REPEAT 
-                CALL startTimers
                 CALL moveDown
             UNTIL current_position EQUALS position
         ELSE IF 
+            CALL startTimers
             REPEAT
-                CALL startTimers
                 CALL moveUp
             UNTIL current_position EQUALS position
         END IF
@@ -227,12 +228,18 @@ WHILE battery IS ON
     CALL floorColumns
 
     IF floorButton IS pressed THEN
-        CALL floorButtons
+        REPEAT
+            CALL floorButtons
+        UNTIL floorButtons EQUALS current_position
     ENDIF
 
     IF open IS pressed THEN
         CALL openButton
     ENDIF
+
+    IF elevatorButton IS pressed THEN 
+        CALL elevatorButtons
+    END IF
 
     IF phone IS pressed THEN
         CALL phoneButton

@@ -1,10 +1,10 @@
 elevator_1 = {
-    position_1: TRUE
+    position_1: 0
     capacity_1: TRUE
 }
 
 elevator_2 = {
-    position_2: TRUE
+    position_2: 5
     capacity_2: TRUE
 }
 
