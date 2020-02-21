@@ -163,5 +163,3 @@ elevator_1.current_position = 2
 elevator_2.current_position = 6
 listElevators.append(elevator_1)
 listElevators.append(elevator_2)
-
-requestElevator(10 , "down")
