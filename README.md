@@ -8,8 +8,8 @@ _ the Python version of the algorithm for the Residential offer \* the Javscript
 
 ### Requirements
 
-- Node.js
 - Python
+- Node.js
 
 ### Instructions
 
