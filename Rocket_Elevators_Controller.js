@@ -62,7 +62,7 @@ class Elevator {
 
     wait() {
         if (this.movement == "idle") {
-            this.current_position = setTimeout(this.backToPosition, 6000)
+            this.current_position = setTimeout(this.backToPosition, 10000)
         }
     }
 
