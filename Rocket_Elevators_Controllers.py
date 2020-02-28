@@ -10,6 +10,7 @@ gapList = []
 movList = []
 posList = []
 
+
 class Elevator:
     def __init__(self, position, id):
         self.position = position
@@ -52,7 +53,7 @@ class Elevator:
 
     # timer as soon as it's idle
     def wait(self):
-        if self.movement ==  "idle":
+        if self.movement == "idle":
             time.sleep(600)
             self.backToPosition()
 
@@ -60,17 +61,20 @@ class Elevator:
     def requestFloor(self, requestedFloor):
         self.requests.append(requestedFloor)
         self.requests.sort()
-        
+
         while self.current_position != requestedFloor:
             if self.current_position > requestedFloor:
                 self.moveDown()
                 self.movement = "down"
-                self.openDoors()
+                self.openDoors
+                print(self.current_position)
             elif self.current_position < requestedFloor:
                 self.moveUp()
                 self.movement = "up"
-                self.openDoors()
+                self.openDoors
+                print(self.current_position)
         self.movement = "idle"
+        print(self.current_position)
         self.requests.remove(requestedFloor)
 
     # close button
@@ -81,7 +85,6 @@ class Elevator:
     # phone button
     def phoneButton(self):
         print("dialing 911...")
-
 
 
 # when we request an elevator at any floor
@@ -99,16 +102,22 @@ def sendElev(elevator, requestedFloor, direction):
     elevator.movement = "idle"
 
 # make a list for positions
+
+
 def getPositions():
     for k in listElevators:
         posList.append(k.current_position)
 
 # make a list for elevator movements
+
+
 def getMovements():
     for j in listElevators:
         movList.append(j.movement)
 
 # make a list for gaps
+
+
 def getGaps(requestedFloor):
     for i in listElevators:
         gapList.append(abs(requestedFloor - i.current_position))
@@ -126,33 +135,40 @@ def requestElevator(requestedFloor, direction):
             print("Elevator 2 is idle, so I'm using elevator 2.")
         elif movList[1] == "up" and requestedFloor > posList[1]:
             sendElev(elevator_2, requestedFloor, direction)
-            print("Elevator 2 is going up and the requested floor is upstairs, so I'm using elevator 2.")
-        elif movList[1] == "up" and requestedFloor < posList[1]: 
-            sendElev(elevator_1, requestedFloor, direction) 
-            print("Elevator 2 is going up and the request floor is downstairs, so I'm using elevator 1.")
+            print(
+                "Elevator 2 is going up and the requested floor is upstairs, so I'm using elevator 2.")
+        elif movList[1] == "up" and requestedFloor < posList[1]:
+            sendElev(elevator_1, requestedFloor, direction)
+            print(
+                "Elevator 2 is going up and the request floor is downstairs, so I'm using elevator 1.")
         elif movList[1] == "down" and requestedFloor > posList[1]:
-            sendElev(elevator_1, requestedFloor, direction) 
-            print("Elevator 2 is going down, and the requested floor is upstairs, so I'm using elevator 1.")
-        else: 
-            sendElev(elevator_2, requestedFloor, direction) 
-            print("Elevator 2 is going down and the requested floor is downstairs, so I'm using elevator 2.")
+            sendElev(elevator_1, requestedFloor, direction)
+            print(
+                "Elevator 2 is going down, and the requested floor is upstairs, so I'm using elevator 1.")
+        else:
+            sendElev(elevator_2, requestedFloor, direction)
+            print(
+                "Elevator 2 is going down and the requested floor is downstairs, so I'm using elevator 2.")
     else:
         if movList[0] == "idle":
-            sendElev(elevator_1, requestedFloor, direction) 
+            sendElev(elevator_1, requestedFloor, direction)
             print("Elevator 1 is idle, so I will use elevator 1.")
         elif movList[0] == "up" and requestedFloor > posList[0]:
-            sendElev(elevator_1, requestedFloor, direction) 
-            print("Elevator 1 is going up and the requested floor is upstairs so I'm using elevator 1.")
+            sendElev(elevator_1, requestedFloor, direction)
+            print(
+                "Elevator 1 is going up and the requested floor is upstairs so I'm using elevator 1.")
         elif movList[0] == "up" and requestedFloor < posList[0]:
-            sendElev(elevator_2, requestedFloor, direction) 
-            print("Elevator 1 is going up and the requested floor is downstairs, so I'm using elevator 2.")
+            sendElev(elevator_2, requestedFloor, direction)
+            print(
+                "Elevator 1 is going up and the requested floor is downstairs, so I'm using elevator 2.")
         elif movList[0] == "down" and requestedFloor > posList[0]:
-            sendElev(elevator_2, requestedFloor, direction) 
-            print("Elevator 1 is going down and the requested floor is upstairs, so I'm using elevator 2.")
-        else:   
-            sendElev(elevator_1, requestedFloor, direction) 
-            print("Elevator 1 is going down and the requested floor is downstairs, so I'm using elevator 1.")
-
+            sendElev(elevator_2, requestedFloor, direction)
+            print(
+                "Elevator 1 is going down and the requested floor is upstairs, so I'm using elevator 2.")
+        else:
+            sendElev(elevator_1, requestedFloor, direction)
+            print(
+                "Elevator 1 is going down and the requested floor is downstairs, so I'm using elevator 1.")
 
 
 elevator_1 = Elevator(1, 1)
@@ -163,3 +179,6 @@ elevator_1.current_position = 2
 elevator_2.current_position = 6
 listElevators.append(elevator_1)
 listElevators.append(elevator_2)
+
+requestElevator(3, "up")
+elevator_1.requestFloor(7)
