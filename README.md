@@ -10,8 +10,15 @@ _ the Python version of the algorithm for the Residential offer \* the Javscript
 
 - Python
 - Node.js
+- C#
 
 ### Instructions
+
+#### C
+
+1.In order to use C#, you only need to comment and uncomment the 4 scenarios at the botton of the page, in the class Program. _Note that only one scenario can run at the time, this way the explanation in the console is easier to understand._
+
+#### Python and Javascript
 
 1. In order to use the Python and Javascript versions, it is important to create the two elevators with the main positions desired.
 
